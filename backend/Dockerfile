@@ -1,16 +1,16 @@
-# Estágio 1: Build com Java 21 e Maven
+# Estágio 1: Build
 FROM maven:3.9.6-eclipse-temurin-21 AS build
+# Isso cria uma pasta e entra nela dentro do container
+WORKDIR /app
+# Copia tudo para dentro dessa pasta /app
 COPY . .
-# Executa o build ignorando os testes para ser mais rápido no deploy
+# Agora o mvn vai rodar dentro de /app, onde o pom.xml estará
 RUN mvn clean package -DskipTests
 
-# Estágio 2: Execução com JRE 21 leve
+# Estágio 2: Execução
 FROM eclipse-temurin:21-jre-jammy
-# Define o diretório de trabalho
 WORKDIR /app
-# Copia o JAR gerado no estágio anterior
-COPY --from=build /target/*.jar app.jar
-# Expõe a porta que o Spring Boot usa
+# Copia o JAR que foi gerado na pasta target do estágio anterior
+COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
-# Comando para rodar a aplicação
 ENTRYPOINT ["java", "-jar", "app.jar"]
